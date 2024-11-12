@@ -5,14 +5,14 @@ import Swal from "sweetalert2";
 import PropTypes from "prop-types";
 
 CustomDragDrop.propTypes = {
-  ownerLicense: PropTypes.array,
+  photos: PropTypes.array,
   onUpload: PropTypes.func,
   onDelete: PropTypes.func,
   count: PropTypes.number,
-  formats: PropTypes.array
+  formats: PropTypes.array,
 }
 
-export function CustomDragDrop({ ownerLicense, onUpload, onDelete, count, formats }) {
+export function CustomDragDrop({ photos, onUpload, onDelete, count, formats }) {
   const dropContainer = useRef(null);
   const [dragging, setDragging] = useState(false);
   const fileRef = useRef(null);
@@ -32,7 +32,7 @@ export function CustomDragDrop({ ownerLicense, onUpload, onDelete, count, format
       return formats.some((format) => file.type.endsWith(`/${format}`));
     });
 
-    if (ownerLicense.length >= count) {
+    if (photos.length >= count) {
       showAlert(
         "warning",
         "Maximum Files",
@@ -115,7 +115,7 @@ export function CustomDragDrop({ ownerLicense, onUpload, onDelete, count, format
         dropContainer.current.removeEventListener("dragleave", handleDragLeave);
       }
     };
-  }, [ownerLicense]);
+  }, [photos]);
 
   const TopNotification = Swal.mixin({
     toast: true,
@@ -143,10 +143,19 @@ export function CustomDragDrop({ ownerLicense, onUpload, onDelete, count, format
   function showImage(image) {
     Swal.fire({
       imageUrl: image,
+      title: "Generated Image",
+      text: "To download, right-click on the image and select 'Save image as'.",
       showCloseButton: true,
       showConfirmButton: false,
-      width: 450
+      width: 550,
+      imageHeight: 250,
+      padding: 20,
     });
+  }
+
+  function deleteHandler(e, index) {
+    onDelete(index);
+    e.stopPropagation();
   }
 
   return (
@@ -180,21 +189,18 @@ export function CustomDragDrop({ ownerLicense, onUpload, onDelete, count, format
             or drag and drop
           </div>
           <div className="text-[10px] font-normal text-gray-500">
-            Only two files PNG, JPG or JPEG
+            Only {count} files PNG, JPG or JPEG, WEBP
           </div>
         </div>
       </div>
 
-      {ownerLicense.length > 0 && (
+      {photos.length > 0 && (
         <div className="mt-4 grid grid-cols-2 gap-y-4 gap-x-4">
-          {ownerLicense.map((img, index) => (
-            <div key={`img-${index}`} className="w-full px-3 py-3.5 rounded-md bg-slate-200 space-y-3">
+          {photos.map((img, index) => (
+            <div key={`img-${index}`} onClick={() => showImage(img.photo)} className="w-full px-3 py-3.5 rounded-md bg-slate-200 space-y-3">
               <div className="flex justify-between">
                 <div className="w-[70%] flex justify-start items-center space-x-2">
-                  <div
-                    className="text-[#5E62FF] text-[37px] cursor-pointer"
-                    onClick={() => showImage(img.photo)}
-                  >
+                  <div className="text-[#5E62FF] text-[37px] cursor-pointer">
                     {img.type.match(/image.*/i) ? (
                       <FaRegFileImage />
                     ) : (
@@ -205,21 +211,13 @@ export function CustomDragDrop({ ownerLicense, onUpload, onDelete, count, format
                     <div className="text-xs font-medium text-gray-500">
                       {img.name}
                     </div>
-                    <div className="text-[10px] font-medium text-gray-400">{`${Math.floor(
-                      img.size / 1024
-                    )} KB`}</div>
+                    <div className="text-[10px] font-medium text-gray-400">{`${Math.floor(img.size / 1024)} KB`}</div>
                   </div>
                 </div>
                 <div className="flex-1 flex justify-end">
                   <div className="space-y-1">
-                    <div
-                      className="text-gray-500 text-[17px] cursor-pointer"
-                      onClick={() => onDelete(index)}
-                    >
+                    <div className="text-gray-500 text-[17px] cursor-pointer" onClick={(e) => deleteHandler(e, index)}>
                       <BsX className="ml-auto" />
-                    </div>
-                    <div className="text-[10px] font-medium text-gray-400">
-                      Done
                     </div>
                   </div>
                 </div>
