@@ -2,11 +2,11 @@ import { CustomDragDrop } from "./CustomContainer";
 import { useState } from "react";
 import Swal from 'sweetalert2';
 
-const resolutions = [[1800, 1169], [3024, 1964]];
-
 export default function DragComponent() {
   const [photoFiles, setPhotoFiles] = useState([]);
-  const [selectedSize, setSelectedSize] = useState(1);
+  const [selectedSize, setSelectedSize] = useState(0);
+  const resolutions = [[1800, 1169], [3024, 1964]];
+  const notchSize = 44;
 
   function showToast(icon, title, text) {
     Swal.fire({
@@ -35,11 +35,11 @@ export default function DragComponent() {
     return new Promise((resolve, reject) => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-      const resolution = resolutions[selectedSize - 1];
-
-      // Set desired canvas dimensions
-      canvas.width = resolution[0];
-      canvas.height = resolution[1];
+      const resolution = resolutions[selectedSize];
+      const width = resolution[0];
+      const height = resolution[1];
+      canvas.width = width;
+      canvas.height = height;
 
       // Decode base64 data to Blob if file is in base64 format
       const base64Data = file.photo.split(',')[1];
@@ -56,15 +56,15 @@ export default function DragComponent() {
 
       image.onload = () => {
         // Scale image to fit canvas
-        const scale = Math.max(canvas.width / image.width, (canvas.height - 44) / image.height);
-        const x = (canvas.width - image.width * scale) / 2;
-        const y = 44 + (canvas.height - 44 - image.height * scale) / 2;
+        const scale = Math.max(width / image.width, (height - notchSize) / image.height);
+        const x = (width - image.width * scale) / 2;
+        const y = notchSize + (height - notchSize - image.height * scale) / 2;
 
         ctx.drawImage(image, 0, 0, image.width, image.height, x, y, image.width * scale, image.height * scale);
 
         // Draw a black line at the top of the canvas
         ctx.fillStyle = "black";
-        ctx.fillRect(0, 0, image.width, 44);
+        ctx.fillRect(0, 0, width, notchSize);
 
         URL.revokeObjectURL(url); // Clean up
         const base64DataUrl = canvas.toDataURL("image/jpeg");
@@ -105,14 +105,14 @@ export default function DragComponent() {
         <div className="flex space-x-3">
           {/* Size Options */}
           <button
-            className={`px-4 py-2 rounded ${selectedSize === 1 ? "bg-blue-500 text-white" : "bg-gray-300"}`}
-            onClick={() => setSelectedSize(1)}
+            className={`px-4 py-2 rounded ${selectedSize === 0 ? "bg-blue-500 text-white" : "bg-gray-300"}`}
+            onClick={() => setSelectedSize(0)}
           >
             1800 x 1169
           </button>
           <button
-            className={`px-4 py-2 rounded ${selectedSize === 2 ? "bg-blue-500 text-white" : "bg-gray-300"}`}
-            onClick={() => setSelectedSize(2)}
+            className={`px-4 py-2 rounded ${selectedSize === 1 ? "bg-blue-500 text-white" : "bg-gray-300"}`}
+            onClick={() => setSelectedSize(1)}
           >
             3024 x 1964
           </button>
